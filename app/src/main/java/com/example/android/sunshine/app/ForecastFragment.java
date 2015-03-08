@@ -42,7 +42,6 @@ import java.util.List;
  */
 public class ForecastFragment extends Fragment {
 
-    public final static String EXTRA_TEXT = "com.example.android.sunshine.app.TEXT";
 
      private ArrayAdapter<String> mForecastAdapter;
      private ListView listView;
@@ -124,7 +123,7 @@ public class ForecastFragment extends Fragment {
                 String forecast = mForecastAdapter.getItem(position);
 
                 Intent intent = new Intent(getActivity(), DetailActivity.class);
-                intent.putExtra(EXTRA_TEXT,forecast);
+                intent.putExtra(Intent.EXTRA_TEXT,forecast);
 
                 startActivity(intent);
 
@@ -160,7 +159,20 @@ public class ForecastFragment extends Fragment {
          * Prepare the weather high/lows for presentation.
          */
         private String formatHighLows(double high, double low) {
-            // For presentation, assume the user doesn't care about tenths of a degree.
+
+            SharedPreferences sharedPrefs = PreferenceManager.getDefaultSharedPreferences(getActivity());
+
+            String unitType = sharedPrefs.getString(getString(R.string.pref_units_key),getString(R.string.pref_units_metric));
+
+            if (unitType.equals(getString(R.string.pref_units_imperial))) {
+                high = (high*1.8) +32;
+                low = (low*1.8) + 32;
+            } else  if (!unitType.equals(getString(R.string.pref_units_metric))){
+
+                Log.d(LOG_TAG,"Unit type was not found: " + unitType);
+            }
+
+
             long roundedHigh = Math.round(high);
             long roundedLow = Math.round(low);
 
@@ -233,6 +245,7 @@ public class ForecastFragment extends Fragment {
                 JSONObject temperatureObject = dayForecast.getJSONObject(OWM_TEMPERATURE);
                 double high = temperatureObject.getDouble(OWM_MAX);
                 double low = temperatureObject.getDouble(OWM_MIN);
+
 
                 highAndLow = formatHighLows(high, low);
                 resultStrs[i] = day + " - " + description + " - " + highAndLow;
